@@ -4,6 +4,8 @@ CurrentModule = PhaseRetrieval
 
 # PhaseRetrieval
 
+Classic phase retrieval algorithms.
+
 ```@index
 ```
 
