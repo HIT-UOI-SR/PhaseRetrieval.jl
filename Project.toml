@@ -1,0 +1,7 @@
+name = "PhaseRetrieval"
+uuid = "dce5fc76-fdf2-4205-8357-5df4580ffcb1"
+authors = ["Yong-an Lu <miroox@outlook.com>"]
+version = "0.1.0"
+
+[compat]
+julia = "1.4"
