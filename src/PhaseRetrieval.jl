@@ -1,5 +1,8 @@
 module PhaseRetrieval
 
-# Write your package code here.
+using FFTW
+export gerchbergsaxton
+
+include("gerchbergsaxton.jl")
 
 end
