@@ -13,12 +13,13 @@ function gerchbergsaxton(Ain, Aout;
         init=randn(ComplexF64, size(Ain))
     )
     Cin = init
+    @. Cin = Ain * exp(im * angle(Cin))
     Cout = similar(Aout)
     for i in 1:maxiter
-        @. Cin = Ain * exp(im * angle(Cin))
         Cout = projector[1](Cin)
         @. Cout = Aout * exp(im * angle(Cout))
         Cin = projector[2](Cout)
+        @. Cin = Ain * exp(im * angle(Cin))
     end
     (Cin, Cout)
 end
