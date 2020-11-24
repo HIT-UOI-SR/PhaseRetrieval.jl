@@ -10,7 +10,7 @@ reconstruct the complex signals from their amplitude values based on the Gerchbe
 function gerchbergsaxton(Ain, Aout; 
         maxiter=100,
         projector=(fft, ifft),
-        init=@. exp(2π * im * $(rand(Float64, size(Ain))))
+        init=randn(ComplexF64, size(Ain))
     )
     Cin = init
     Cout = similar(Aout)
