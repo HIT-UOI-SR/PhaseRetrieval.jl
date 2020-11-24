@@ -15,9 +15,9 @@ function gerchbergsaxton(Ain, Aout;
     Cin = init
     Cout = similar(Aout)
     for i in 1:maxiter
-        @. Cin = Ain * exp(2π * im * angle(Cin))
+        @. Cin = Ain * exp(im * angle(Cin))
         Cout = projector[1](Cin)
-        @. Cout = Aout * exp(2π * im * angle(Cout))
+        @. Cout = Aout * exp(im * angle(Cout))
         Cin = projector[2](Cout)
     end
     (Cin, Cout)
