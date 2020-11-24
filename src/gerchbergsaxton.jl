@@ -10,6 +10,8 @@ reconstruct the complex signals from their amplitude values based on the Gerchbe
 function gerchbergsaxton(Ain, Aout; 
         maxiter=100,
         projector=(fft, ifft),
+        errorfunc=msd,
+        tol=eps(),
         init=randn(ComplexF64, size(Ain))
     )
     Cin = init
@@ -19,6 +21,9 @@ function gerchbergsaxton(Ain, Aout;
         Cout = projector[1](Cin)
         @. Cout = Aout * exp(im * angle(Cout))
         Cin = projector[2](Cout)
+        if errorfunc(abs.(Cin), Ain) < tol
+            break
+        end
         @. Cin = Ain * exp(im * angle(Cin))
     end
     (Cin, Cout)
