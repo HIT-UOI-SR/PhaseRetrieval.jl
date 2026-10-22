@@ -36,7 +36,7 @@
                                     projector=(matrixforward, matrixbackward),
                                     init=copy(init), maxiter=30, tol=0)
             @test abs.(r1) ≈ ain
-            @test abs.(r2) ≈ aout
+            @test r2 ≈ matrixforward(r1)
             @test msd(abs.(matrixforward(r1)), aout) < initial_error
         end
     end

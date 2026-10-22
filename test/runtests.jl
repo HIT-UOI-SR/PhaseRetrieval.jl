@@ -4,6 +4,8 @@ using Distances
 using OpticalPropagation
 using Test
 using Unitful
+using LinearAlgebra
+using Random
 
 @testset "PhaseRetrieval.jl" begin
     @test begin # see Gerchberg's original paper
@@ -15,3 +17,13 @@ using Unitful
 
     include("opticalpropagation.jl")
 end
+
+# Independent reference expressions: do not use internal projection helpers.
+amplitude(a, x) = a .* exp.(im .* angle.(x))
+phase_error(x, truth) = norm(x .* exp(-im * angle(dot(truth, x))) - truth) / norm(truth)
+
+include("gerchbergsaxton.jl")
+include("yanggu.jl")
+include("projectionmethods.jl")
+include("sbmir.jl")
+include("validation.jl")
