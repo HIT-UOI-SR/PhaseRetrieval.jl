@@ -2,6 +2,8 @@ using PhaseRetrieval
 using FFTW
 using Distances
 using Test
+using LinearAlgebra
+using Random
 
 @testset "PhaseRetrieval.jl" begin
     @test begin # see Gerchberg's original paper
@@ -11,3 +13,13 @@ using Test
         msd(c1, r1) < 0.01 && msd(c2, r2) < 0.01
     end
 end
+
+# Independent reference expressions: do not use internal projection helpers.
+amplitude(a, x) = a .* exp.(im .* angle.(x))
+phase_error(x, truth) = norm(x .* exp(-im * angle(dot(truth, x))) - truth) / norm(truth)
+
+include("gerchbergsaxton.jl")
+include("yanggu.jl")
+include("projectionmethods.jl")
+include("sbmir.jl")
+include("validation.jl")
