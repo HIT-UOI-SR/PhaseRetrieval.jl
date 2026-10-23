@@ -15,7 +15,8 @@ jobs:
           - 'nightly'
         os:
           - ubuntu-latest
-          - macOS-latest
+          # Julia 1.4/1.5 predate Apple Silicon; use a native x64 runner.
+          - macos-15-intel
           - windows-latest
         arch:
           - x64
