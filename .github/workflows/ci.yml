@@ -22,6 +22,12 @@ jobs:
           - x64
     steps:
       - uses: actions/checkout@v2
+      - name: Locate system libc++ for Julia 1.4 on modern macOS
+        if: runner.os == 'macOS' && matrix.version == '1.4'
+        shell: bash
+        # Julia 1.4's LLVM uses @rpath/libc++.1.dylib; newer dyld versions
+        # no longer find the system library through that legacy search path.
+        run: echo 'DYLD_FALLBACK_LIBRARY_PATH=/usr/lib' >> "$GITHUB_ENV"
       - uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.version }}
