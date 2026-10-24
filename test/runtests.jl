@@ -1,7 +1,9 @@
 using PhaseRetrieval
 using FFTW
 using Distances
+using OpticalPropagation
 using Test
+using Unitful
 
 @testset "PhaseRetrieval.jl" begin
     @test begin # see Gerchberg's original paper
@@ -10,4 +12,6 @@ using Test
         r1, r2 = gerchbergsaxton(abs.(c1), abs.(c2), maxiter=130, init=c1)
         msd(c1, r1) < 0.01 && msd(c2, r2) < 0.01
     end
+
+    include("opticalpropagation.jl")
 end

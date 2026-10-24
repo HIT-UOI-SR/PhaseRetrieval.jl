@@ -1,3 +1,15 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+OpticalPropagation = "bd2a9720-0cf4-11ea-3d1a-97ce67aae37d"
 PhaseRetrieval = "dce5fc76-fdf2-4205-8357-5df4580ffcb1"
+Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+
+[sources]
+PhaseRetrieval = {path = ".."}
+
+[compat]
+Documenter = "1.19"
+OpticalPropagation = "0.4"
+PhaseRetrieval = "0.1"
+Unitful = "1.29"
+julia = "1.10"
