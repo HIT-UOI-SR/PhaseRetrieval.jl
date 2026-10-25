@@ -11,6 +11,10 @@ Requires Julia 1.10 or later. The package provides the algorithms below, with
 FFT propagation by default and configurable propagation operators.
 OpticalPropagation 0.4 is supported through this interface; see the
 [optical propagation example](https://HIT-UOI-SR.github.io/PhaseRetrieval.jl/dev/#Optical-propagation).
+Loading OpticalPropagation activates an optional extension for all five solvers,
+including `MonoLightField2D` measurements and preservation of wavelength,
+physical window, centre and sampling. Nonunitary or independently sampled
+propagation requires Yang–Gu with the actual forward/adjoint operators.
 
 | Algorithm | Function | Measurements / constraints |
 | --- | --- | --- |

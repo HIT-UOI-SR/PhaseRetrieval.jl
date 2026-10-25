@@ -42,8 +42,55 @@ Use matching sampling grids for the amplitude measurements and propagators.
 The first returned field satisfies the input amplitude constraint, and the
 second is its forward propagation. At a finite iteration count, the output
 amplitude need not match the measured amplitude exactly.
-OpticalPropagation and Unitful are test/example dependencies, so the default FFT
-solver only loads FFTW and Distances.
+OpticalPropagation is an optional dependency: loading both packages activates
+the light-field extension. The default FFT solver only loads FFTW and Distances.
+`abs.(light)` and `abs2.(light)` retain OpticalPropagation's complex storage;
+the extension accepts these measurements only when every value is real,
+finite, and nonnegative. All five solvers preserve the light-field metadata
+when using propagation functions that return light fields.
+
+For fixed-grid Fresnel propagation, backward propagation is also the Hermitian
+adjoint. Supply it to Yang–Gu with `normaldiag=1`. HIO and RAAR accept the same
+forward/backward pair, plus an ordinary Boolean support. With wrapped detector
+measurements, their default initialization uses the detector grid; supply an
+`init` light field when the object has a different physical grid.
+
+```@example optical
+yg, ygoutput = yanggu(abs.(truth), abs.(measured);
+    projector=(forward, backward), normaldiag=1,
+    maxiter=3, inneriter=2)
+support = trues(size(truth))
+for solver in (hio, raar)
+    field, prediction = solver(abs.(measured), support;
+        projector=(forward, backward), init=copy(truth), maxiter=3)
+    @assert prediction ≈ forward(field)
+    @assert gridcenter(field) == gridcenter(truth)
+end
+
+distances = (7u"mm", 13u"mm")
+pairs = [(fresnel2(d), fresnel2(-d)) for d in distances]
+planes = [truth, fresnel2(distances[1])(truth), fresnel2(sum(distances))(truth)]
+fields = sbmir([abs2.(plane) for plane in planes];
+    propagators=pairs, init=copy(truth), maxiter=3)
+@assert fields[2] ≈ pairs[1][1](fields[1])
+@assert fields[3] ≈ pairs[2][1](fields[2])
+nothing # hide
+```
+
+OpticalPropagation 0.4 corrects odd/even FFT grids and signed-distance phases,
+and adds independently sampled Rayleigh–Sommerfeld propagation. The tests compare
+against its corrected Fresnel kernel on a rectangular odd/even grid at positive,
+negative and zero distances. OpticalPropagation's `fresnel2` includes the global
+carrier phase `cispi(2distance/wavelength)`; [`fresnelpropagate`](@ref) omits it.
+Account for this phase when comparing complex fields rather than intensities.
+
+A finite-window or independently sampled Rayleigh–Sommerfeld operator is
+generally nonunitary. Use Yang–Gu with its actual discrete Hermitian adjoint
+and `normaldiag=diag(G'G)`; propagating by a negative distance does not construct
+that adjoint. The matrix interface can use a discretized propagation matrix
+`G`, including rectangular matrices for different input/output sample counts.
+The integration tests compare a wrapped Rayleigh–Sommerfeld forward/adjoint
+pair to this matrix interface, checking each plane's sampling and metadata.
 
 ## Data and return conventions
 

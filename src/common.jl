@@ -20,7 +20,7 @@ function _same_size(a, b, name)
 end
 
 function _initial_field(a, init)
-    T = typeof(float(zero(eltype(a))))
+    T = typeof(real(float(zero(eltype(a)))))
     if init === nothing
         return randn(Complex{T}, size(a))
     end
@@ -31,6 +31,11 @@ function _initial_field(a, init)
     R = promote_type(T, typeof(real(float(zero(eltype(init))))))
     Complex{R}.(init)
 end
+
+# The support fixes the object shape; physical-grid types may specialize this
+# to supply the metadata needed by their propagation operators.
+_support_initial_field(a, support, init) =
+    _initial_field(zeros(typeof(real(float(zero(eltype(a))))), size(support)), init)
 
 # At zero choose phase zero, so a positive target amplitude is not lost.
 _unitphase(z) = iszero(z) ? one(complex(z)) : z / abs(z)

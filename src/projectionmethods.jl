@@ -23,7 +23,7 @@ function _support_solver(method, Aout, support; beta=0.9, nonnegative=false,
     nonnegative isa Bool || throw(ArgumentError("nonnegative must be Boolean"))
     forward, backward = _pair(projector)
     # Projecting a supplied initial iterate would change the HIO/RAAR recurrence.
-    x = _initial_field(zeros(typeof(float(zero(eltype(Aout)))), size(support)), init)
+    x = _support_initial_field(Aout, support, init)
     if init === nothing
         x = _object_projection(x, support, nonnegative)
     end
@@ -37,7 +37,7 @@ function _support_solver(method, Aout, support; beta=0.9, nonnegative=false,
         if method === :hio
             if nonnegative
                 # Real-object HIO: remove imaginary leakage on accepted pixels.
-                accepted = support .& (real.(pm) .>= 0)
+                accepted = map((inside, p) -> inside && real(p) >= 0, support, pm)
                 x = ifelse.(accepted, complex.(real.(pm)), x .- beta .* pm)
             else
                 x = ifelse.(support, pm, x .- beta .* pm)

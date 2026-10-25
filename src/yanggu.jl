@@ -57,7 +57,7 @@ function yanggu(Ain, Aout; projector=nothing, normaldiag=nothing,
             normal = _propagate(backward, _propagate(forward, x, Aout), Ain)
             direction = b .- normal .+ normaldiag .* x
             # A vanishing argument leaves the phase undetermined (e.g. a zero column).
-            direction = ifelse.(iszero.(direction), x, direction)
+            direction = ifelse.(map(iszero, direction), x, direction)
             next = _modulus(Ain, direction)
             change = msd(next, x)
             x = next
