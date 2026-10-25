@@ -11,10 +11,8 @@ function PhaseRetrieval._measurement(a::MonoLightField2D, name)
     a
 end
 
-function PhaseRetrieval._initial_field(a::MonoLightField2D, init)
-    field = invoke(PhaseRetrieval._initial_field, Tuple{Any,Any}, a, init)
-    init === nothing ? MonoLightField2D(a; data=field) : field
-end
+PhaseRetrieval._initial_field(a::MonoLightField2D, ::Nothing) =
+    MonoLightField2D(a; data=invoke(PhaseRetrieval._initial_field, Tuple{Any,Any}, a, nothing))
 
 function PhaseRetrieval._support_initial_field(a::MonoLightField2D, support, init)
     if init === nothing

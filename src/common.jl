@@ -15,9 +15,8 @@ function _iterations(maxiter, tol)
         throw(ArgumentError("tol must be finite and nonnegative"))
 end
 
-function _same_size(a, b, name)
+_same_size(a, b, name) =
     size(a) == size(b) || throw(DimensionMismatch("$name has size $(size(a)); expected $(size(b))"))
-end
 
 function _initial_field(a, init)
     T = typeof(real(float(zero(eltype(a)))))

@@ -36,6 +36,17 @@
             x, y = solver(abs.(fft(truth)), support; init=truth, nonnegative=positive, maxiter=3, tol=0)
             @test x ≈ truth
             @test y ≈ fft(truth)
+
+            # A feasible initial object must stop before applying a feedback
+            # update, for both complex and real nonnegative constraints.
+            calls = Ref(0)
+            counted = x -> (calls[] += 1; fft(x))
+            x, y = solver(abs.(fft(truth)), support; init=truth,
+                nonnegative=positive, maxiter=9, tol=1e-20,
+                projector=(counted, ifft))
+            @test calls[] == 1
+            @test x == truth
+            @test y ≈ fft(truth)
         end
         # Amplitude feasibility alone cannot trigger stopping outside support.
         calls = Ref(0)
