@@ -137,19 +137,6 @@
             projector=(identity, identity))
     end
 
-    @testset "Fresnel 0.4 phase and FFT grids" begin
-        wavelength = ustrip(u"m", truth.wavelength)
-        widths = ustrip.(u"m", physicalsize(truth))
-        for d in (0.0, 0.02, -0.02)
-            result = fresnelpropagate(parent(truth), d;
-                wavelength, pixelsize=widths ./ size(truth))
-            # OpticalPropagation includes the constant carrier; this package's
-            # fixed-grid helper explicitly omits it.
-            reference = fresnel2(parent(truth), d, wavelength, widths...) .* cispi(-2d/wavelength)
-            @test result ≈ reference
-        end
-    end
-
     @testset "Yang–Gu with independently sampled Rayleigh–Sommerfeld output" begin
         input = MonoLightField2D(data[1:3, 1:2]; wavelength=truth.wavelength,
             size=(0.1u"mm", 0.08u"mm"), center=gridcenter(truth))

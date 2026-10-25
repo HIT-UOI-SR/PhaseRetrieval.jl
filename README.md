@@ -9,10 +9,10 @@ Classic phase retrieval algorithms.
 
 Requires Julia 1.10 or later. The package provides the algorithms below, with
 FFT propagation by default and configurable propagation operators.
-OpticalPropagation 0.4 is supported through this interface; see the
+OpticalPropagation 0.4 is a required dependency and provides the optical
+propagation models; see the
 [optical propagation example](https://HIT-UOI-SR.github.io/PhaseRetrieval.jl/dev/#Optical-propagation).
-Loading OpticalPropagation activates an optional extension for all five solvers,
-including `MonoLightField2D` measurements and preservation of wavelength,
+All five solvers support `MonoLightField2D` measurements and preserve wavelength,
 physical window, centre and sampling. Nonunitary or independently sampled
 propagation requires Yang–Gu with the actual forward/adjoint operators.
 
@@ -22,14 +22,14 @@ propagation requires Yang–Gu with the actual forward/adjoint operators.
 | Yang–Gu (杨–顾) | `yanggu(Ain, Aout, G)` | Two amplitudes, general linear transform (including nonunitary) |
 | Hybrid input–output | `hio(Aout, support)` | Diffraction amplitude, Boolean support, optional nonnegativity |
 | Relaxed averaged alternating reflections | `raar(Aout, support)` | Same constraints as HIO |
-| Single-beam multiple-intensity reconstruction | `sbmir(intensities, positions; wavelength, pixelsize)` | Intensities at multiple propagation planes |
+| Single-beam multiple-intensity reconstruction | `sbmir(intensities; propagators)` | Intensities at multiple propagation planes |
 
 GS, Yang–Gu, HIO and RAAR take **amplitudes**, not intensities. Convert camera
 intensity data with `sqrt.(I)`. SBMIR takes **intensities** directly. Arrays must
 contain finite, nonnegative measurements; all solvers leave their inputs intact.
 
 ```julia
-using PhaseRetrieval, FFTW, Random
+using PhaseRetrieval, OpticalPropagation, Unitful, FFTW, Random
 Random.seed!(42)
 
 # Two-plane Fourier measurements, with an independent initial phase.
@@ -52,11 +52,13 @@ G = randn(ComplexF64, 12, 4)
 u = exp.(im .* randn(4))
 uyg, vyg = yanggu(abs.(u), abs.(G*u), G; maxiter=500, inneriter=10)
 
-# Multiple planes: units here are metres; spacings may be unequal.
-z = [0.0, 0.8e-3, 2.1e-3, 3.9e-3, 6.2e-3]
-optics = (wavelength=532e-9, pixelsize=(8e-6, 8e-6))
-intensities = [abs2.(fresnelpropagate(truth, d; optics...)) for d in z]
-fields = sbmir(intensities, z; optics..., init=ones(size(truth)), maxiter=200)
+# Multiple planes use OpticalPropagation's light fields and propagators.
+light = MonoLightField2D(truth; wavelength=532u"nm", size=(256u"μm", 256u"μm"))
+z = [0.0, 0.8, 2.1, 3.9, 6.2]u"mm"
+intensities = [abs2.(fresnel2(d)(light)) for d in z]
+propagators = [(fresnel2(d), fresnel2(-d)) for d in diff(z)]
+fields = sbmir(intensities; propagators,
+    init=MonoLightField2D(light; data=ones(size(light))), maxiter=200)
 ```
 
 The first four solvers return `(field, forward(field))`. The second array is a

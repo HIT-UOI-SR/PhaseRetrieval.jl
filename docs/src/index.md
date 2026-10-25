@@ -8,8 +8,8 @@ Classic phase retrieval algorithms.
 
 ## Optical propagation
 
-On Julia 1.10 or later, install PhaseRetrieval, OpticalPropagation 0.4, and Unitful
-in your environment. Pass a forward/backward propagation pair to the existing
+PhaseRetrieval requires Julia 1.10 or later and depends on OpticalPropagation 0.4
+for optical propagation. Pass a forward/backward propagation pair to the
 `projector` keyword. OpticalPropagation's `fresnel2` uses the same physical grid
 in both directions, and its curried form accepts unitful propagation distances.
 
@@ -42,10 +42,9 @@ Use matching sampling grids for the amplitude measurements and propagators.
 The first returned field satisfies the input amplitude constraint, and the
 second is its forward propagation. At a finite iteration count, the output
 amplitude need not match the measured amplitude exactly.
-OpticalPropagation is an optional dependency: loading both packages activates
-the light-field extension. The default FFT solver only loads FFTW and Distances.
+Light-field support is part of the package's main module.
 `abs.(light)` and `abs2.(light)` retain OpticalPropagation's complex storage;
-the extension accepts these measurements only when every value is real,
+the solvers accept these measurements only when every value is real,
 finite, and nonnegative. All five solvers preserve the light-field metadata
 when using propagation functions that return light fields.
 
@@ -77,12 +76,10 @@ fields = sbmir([abs2.(plane) for plane in planes];
 nothing # hide
 ```
 
-OpticalPropagation 0.4 corrects odd/even FFT grids and signed-distance phases,
-and adds independently sampled Rayleigh–Sommerfeld propagation. The tests compare
-against its corrected Fresnel kernel on a rectangular odd/even grid at positive,
-negative and zero distances. OpticalPropagation's `fresnel2` includes the global
-carrier phase `cispi(2distance/wavelength)`; [`fresnelpropagate`](@ref) omits it.
-Account for this phase when comparing complex fields rather than intensities.
+OpticalPropagation 0.4 provides the FFT grids, signed-distance phases and
+independently sampled Rayleigh–Sommerfeld propagation. PhaseRetrieval uses those
+operators directly, including `fresnel2`'s global carrier phase. The integration
+tests exercise rectangular odd/even grids and signed propagation distances.
 
 A finite-window or independently sampled Rayleigh–Sommerfeld operator is
 generally nonunitary. Use Yang–Gu with its actual discrete Hermitian adjoint
@@ -175,27 +172,23 @@ One iteration is the complete forward/backward sweep. For two planes this is
 GS with the specified propagation pair. Custom adjacent-plane pairs are passed
 as `propagators=[(forward12, backward21), (forward23, backward32), ...]`.
 
-## Fresnel propagation and a runnable example
+## Multi-plane reconstruction with OpticalPropagation
 
-`fresnelpropagate` implements the paraxial transfer function
-
-```math
-H_z(f_1,\ldots,f_d)=\exp\left(-i\pi\lambda z\sum_j f_j^2\right).
-```
-
-The constant carrier phase is omitted. Positive distance uses this sign;
-negative distance is the inverse. The grid is periodic, fixed between planes,
-and may have different spacings along different dimensions. Wavelength,
-positions and pixel spacing must share a length unit. Choose adequate sampling
-and padding for the optical field. This model assumes paraxial propagation.
+For plain two-dimensional real measurement matrices, the positions interface
+converts pixel spacing to physical window widths and calls
+`OpticalPropagation.fresnel2` at each adjacent distance. All lengths in this
+interface are in metres. It uses OpticalPropagation's full propagation phase.
+Choose adequate sampling and padding for the optical field. For light fields
+and unitful distances, use the propagation functors shown above.
 
 ```julia
-using PhaseRetrieval, Random
+using PhaseRetrieval, OpticalPropagation, Random
 Random.seed!(104)
 truth = (0.6 .+ rand(8, 9)) .* exp.(0.7im .* randn(8, 9))
 z = [0.0, 0.8, 2.1, 3.9, 6.2]
 optics = (wavelength=0.08, pixelsize=(0.2, 0.25))
-I = [abs2.(fresnelpropagate(truth, d; optics...)) for d in z]
+widths = size(truth) .* optics.pixelsize
+I = [abs2.(fresnel2(truth, d, optics.wavelength, widths...)) for d in z]
 fields = sbmir(I, z; optics..., init=ones(size(truth)), maxiter=250)
 phase = angle.(fields[1])
 errors = [sum(abs2, abs2.(u) .- measured) / length(u)
